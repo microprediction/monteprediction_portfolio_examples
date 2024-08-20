@@ -14,7 +14,7 @@ def slightly_random_unit_port(cov, noise=10*DEFAULT_COV_NOISE):
     return unit_port(cov=jiggled_cov)
 
 
-def smooth_monte_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
+def convex_hull_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
     """
     :param port:    function taking cov -> weights
     :param lmbd:    coefficient used to smooth cov estimates (lmbd=1 means just use this week)
@@ -70,15 +70,15 @@ def smooth_monte_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
 
 if __name__=='__main__':
     burn_in = 10
-    cw = smooth_monte_backtest(port=cw_port, burn_in=burn_in)
-    eq = smooth_monte_backtest(port=equal_long_port, burn_in=burn_in)
+    cw = convex_hull_backtest(port=cw_port, burn_in=burn_in)
+    eq = convex_hull_backtest(port=equal_long_port, burn_in=burn_in)
     rup_minus_eqs = list()
     rup_minus_cws = list()
     rups = list()
     eqs = list()
     cws = list()
     for k in range(10):
-        rup = smooth_monte_backtest(port=slightly_random_unit_port)
+        rup = convex_hull_backtest(port=slightly_random_unit_port)
         print({'rup minus cw':rup-cw,'rup minus eq':rup-eq, 'cw':cw,'eq':eq,'rup':rup})
         rups.append(rup)
         eqs.append(eq)
