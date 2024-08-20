@@ -1,7 +1,7 @@
 from monteprediction.api import get_truths, get_covariance, get_mean
 import numpy as np
 import pandas as pd
-from precise.skaters.portfoliostatic.unitport import unit_port, unit_port_p050, unit_port_p020, unit_port_p040, unit_port_p060, unit_port_p080
+from precise.skaters.portfoliostatic.unitport import unit_port
 from cwport import cw_port
 from yahooempiricalcov import yahoo_empirical_cov
 from portmetrics import PORT_METRICS, total_return, sharpe_ratio, sortino_ratio
