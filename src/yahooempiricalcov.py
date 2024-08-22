@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from monteprediction import SPDR_ETFS
 import yfinance as yf
 from functools import lru_cache
-
+import time
 
 def wednesday_two_back(expiry):
     expiry_date = datetime.strptime(expiry, '%Y_%m_%d')
@@ -16,13 +16,29 @@ def wednesday_two_back(expiry):
 
 @lru_cache(maxsize=None)
 def yahoo_empirical_cov(expiry):
-    wed_two_back = wednesday_two_back(expiry=expiry)
-    num_weeks = int(52 + 2 * 52 * np.random.rand())
-    start_date = wed_two_back - timedelta(weeks=num_weeks)
-    data = yf.download(SPDR_ETFS, start=start_date, end=wed_two_back, interval="1wk")
-    weekly_prices = data['Adj Close']
-    weekly_returns = weekly_prices.pct_change().dropna()
+    retries = 5
+    delay = 2
+    backoff = 2
+    last_exception = None
 
-    # Use cov estimation to generate samples
-    cov_matrix = EmpiricalCovariance().fit(weekly_returns).covariance_
-    return cov_matrix
+    for attempt in range(retries):
+        try:
+            wed_two_back = wednesday_two_back(expiry=expiry)
+            num_weeks = int(52 + 2 * 52 * np.random.rand())
+            start_date = wed_two_back - timedelta(weeks=num_weeks)
+            data = yf.download(SPDR_ETFS, start=start_date, end=wed_two_back, interval="1wk")
+            weekly_prices = data['Adj Close']
+            weekly_returns = weekly_prices.pct_change().dropna()
+
+            # Use cov estimation to generate samples
+            cov_matrix = EmpiricalCovariance().fit(weekly_returns).covariance_
+            return cov_matrix
+
+        except Exception as e:
+            last_exception = e
+            print(f"Error occurred: {e}. Attempt {attempt + 1} of {retries}.")
+            time.sleep(delay)
+            delay *= backoff  # Increase delay with each retry
+
+    # Raise the last exception if all retries fail
+    raise last_exception

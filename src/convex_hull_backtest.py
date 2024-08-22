@@ -4,14 +4,20 @@ import pandas as pd
 from cwport import cw_port
 from precise.skaters.portfoliostatic.unitport import unit_port
 from precise.skaters.portfoliostatic.equalport import equal_long_port
+from precise.skaters.portfoliostatic.weakport import weak_h400_long_port
 from precise.skaters.managers.covmanagerfactory import closest_random_nudge
 from precise.skaters.covarianceutil.covrandom import jiggle_cov, DEFAULT_COV_NOISE
+
 # Demonstrates how to use community covariance to create and index alternative
 
 
 def slightly_random_unit_port(cov, noise=10*DEFAULT_COV_NOISE):
     jiggled_cov = jiggle_cov(cov=cov, noise=noise)
     return unit_port(cov=jiggled_cov)
+
+def slightly_random_weak_port(cov, noise=10*DEFAULT_COV_NOISE):
+    jiggled_cov = jiggle_cov(cov=cov, noise=noise)
+    return weak_h400_long_port(cov=jiggled_cov)
 
 
 def convex_hull_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
@@ -30,6 +36,7 @@ def convex_hull_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
     port_rets = list()
     prev_w = None
     prev_cov = None
+    # Loop over weeks ...
     for expiry in expiries[burn_in:]:
         df_mu = get_mean(expiry=expiry)
         df_cov = get_covariance(expiry=expiry)
@@ -78,7 +85,7 @@ if __name__=='__main__':
     eqs = list()
     cws = list()
     for k in range(10):
-        rup = convex_hull_backtest(port=slightly_random_unit_port)
+        rup = convex_hull_backtest(port=slightly_random_weak_port)
         print({'rup minus cw':rup-cw,'rup minus eq':rup-eq, 'cw':cw,'eq':eq,'rup':rup})
         rups.append(rup)
         eqs.append(eq)
