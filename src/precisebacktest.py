@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 from precise.skaters.portfoliostatic.unitport import unit_port as port
 
-# Demonstrates how to use community covariance to create and index alternative
+# Demonstrates how to use community covariance with the precise package
+# Alter as you see fit to use any other package taking mu and/or cov to weights. 
 
 
 def precise_backtest(port, burn_in=4):
