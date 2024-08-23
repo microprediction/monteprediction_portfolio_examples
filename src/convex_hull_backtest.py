@@ -68,6 +68,10 @@ def convex_hull_backtest(port, l:int=51, burn_in=4, q=0.75, lmbd=0.9):
                 # Run portfolio construction several times and move towards the nearest point in convex hull
                 w = closest_random_nudge(port, cov, q=q, l=l, w=prev_w, port_kwargs={})
 
+                # Puke portfolio
+                from monteprediction import SPDR_ETFS
+                print(dict(zip(SPDR_ETFS,[float(wi) for wi in w])))
+
                 port_ret = np.log(np.dot(w, np.exp(truth)))
                 port_rets.append(port_ret)
 

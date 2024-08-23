@@ -12,16 +12,13 @@ from covmetrics import COV_METRICS, cov_likelihood, subspace_likelihood, project
 # Define the portfolio methods
 portfolio_methods = [
     unit_port,
-    unit_port_p050,
     weak_long_port,
-    weak_h150_long_port,
-    weak_h400_long_port,
     cw_port,
     equal_long_port
 ]
 
 
-def precise_backtest(port, burn_in=6, empirical=True, port_metric=None, cov_metric=None, cov_metric_kwargs=None):
+def precise_backtest(port, burn_in=7, empirical=True, port_metric=None, cov_metric=None, cov_metric_kwargs=None):
     """
     :param port:   A function taking cov -> weights as per the convention in precise.skaters.portfoliostatic
     :param burn_in: Number of initial periods to exclude
@@ -51,12 +48,17 @@ def precise_backtest(port, burn_in=6, empirical=True, port_metric=None, cov_metr
 
         if np.issubdtype(community_cov.dtype, np.number):
             if not np.any(np.isnan(community_cov)) and not np.any(pd.isnull(community_cov)):
+                # For interest ...
+                community_frobenius_norm = np.linalg.norm(community_cov, 'fro')
+                emp_frobenius_norm = np.linalg.norm(emp_cov, 'fro')
+                print({'expiry': expiry, 'comm_ratio':community_frobenius_norm/emp_frobenius_norm,'community_norm': community_frobenius_norm, 'emp_norm': emp_frobenius_norm})
+
                 if empirical:
-                    cov = emp_cov
+                    cov = np.copy(emp_cov)
                     mu = np.zeros_like(df_mu.values)
                 else:
                     mu = df_mu.values  # <--- Hack
-                    cov = 0.9*community_cov
+                    cov = np.copy(community_cov)
 
                 # TODO: Use mu to alter cov
 
@@ -129,10 +131,10 @@ def show_leaderboard():
 
 
 if __name__=='__main__':
-    dim = 3
-    port_metric = sharpe_ratio
+    dim = 10  # <-- Dimension of the subspace for likelihood or projected likelihood
+    port_metric = sortino_ratio
     cov_metric = projected_subspace_likelihood
-    cov_metric_kwargs ={'dim':dim, 'num_subspaces':100}
+    cov_metric_kwargs ={'dim':dim, 'num_subspaces':1000}
     community_covariance_comparison(portfolio_methods, port_metric=port_metric, cov_metric=cov_metric, cov_metric_kwargs=cov_metric_kwargs)
 
 
